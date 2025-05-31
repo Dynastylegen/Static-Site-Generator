@@ -17,15 +17,42 @@ class HTMLNode:
         return (f"HTMLNode: {self.tag}, {self.value}, {self.children}, {self.props}")
 
 class LeafNode(HTMLNode):
-    def __init__(self, value, tag=None, props=None):
-        super().__init__(value=value, tag=tag, props=props, children=None)
+    def __init__(self, tag=None, value=None,  props=None):
+        super().__init__( tag=tag,value=value, props=props, children=None)
 
     def to_html(self):
-        if self.value == None:
-            raise ValueError
-        if self.tag == None:
+        if self.tag is None:
+            if self.value is None:
+                raise ValueError
             return self.value
+        if self.value is None:
+            raise ValueError
         props_str = ""
         if self.props:
             props_str = " " + " ".join(f'{key}="{value}"' for key, value in self.props.items())
         return f"<{self.tag}{props_str}>{self.value}</{self.tag}>"
+
+class ParentNode(HTMLNode):
+    def __init__(self, tag, children, props=None):
+        if tag is None:
+            raise ValueError("Tag is required for ParentNode")
+        if children is None:
+            raise ValueError("Children are required for the ParentNode")
+        super().__init__(tag=tag, value=None,  children=children, props=props)
+
+    def to_html(self):
+        if self.tag is None:
+            raise ValueError("Tag is required for ParentNode")
+        if self.children is None:
+            raise ValueError("Children are required for the ParentNode")
+        if self.props is not None and len(self.props) > 0:
+            attributes = ' '.join(f'{key}="{value}"' for key, value in self.props.items())
+            opening_tag = f"<{self.tag} {attributes}>"
+        else:
+            opening_tag = f"<{self.tag}>"
+
+        html = opening_tag
+        for child in self.children:
+            html += child.to_html()
+        html += f"</{self.tag}>"
+        return html
