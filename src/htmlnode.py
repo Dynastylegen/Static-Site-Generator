@@ -1,3 +1,28 @@
+from textnode import TextType, TextNode
+
+def text_node_to_html_node(text_node):
+    if not isinstance(text_node, TextNode):
+        raise ValueError("Input must be a TextNode")
+    match text_node.text_type:
+        case TextType.TEXT:
+            return LeafNode(tag=None, value=text_node.text)
+        case TextType.BOLD:
+            return LeafNode(tag="b", value=text_node.text)
+        case TextType.ITALIC:
+            return LeafNode(tag="i", value=text_node.text)
+        case TextType.CODE:
+            return LeafNode(tag="code", value=text_node.text)
+        case TextType.LINK:
+            if not text_node.url:
+                raise ValueError("Link TextNode must have a URL")
+            return LeafNode(tag="a", value=text_node.text, props={"href": text_node.url})
+        case TextType.IMAGE:
+            if not text_node.url or not text_node.text:
+                raise ValueError("Image TextNode must have a URL and text (for alt)")
+            return LeafNode(tag="img", value= "", props={"src": text_node.url, "alt": text_node.text})
+        case _:
+            raise ValueError(f"Invalid TextType:{text_node.text_type}")
+
 class HTMLNode:
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
