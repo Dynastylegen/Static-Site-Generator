@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType, split_nodes_delimiter
+from textnode import TextNode, TextType, split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 
 
 class TestTextNode(unittest.TestCase):
@@ -85,6 +85,52 @@ class TestTextNode(unittest.TestCase):
             TextNode(" end", TextType.TEXT)
         ]
         self.assertEqual(result, expected)
+
+    def test_extract_markdown_images(self):
+        matches = extract_markdown_images(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
+
+    def test_extract_markdown_links(self):
+        matches = extract_markdown_links(
+            "This is text with a [link](https://example.com/page)"
+        )
+        self.assertListEqual([("link", "https://example.com/page")], matches)
+
+    def test_extract_markdown_images_empty(self):
+        matches = extract_markdown_images("")
+        self.assertListEqual([], matches)
+
+    def test_extract_markdown_links_empty(self):
+        matches = extract_markdown_links("")
+        self.assertListEqual([], matches)
+
+    def test_extract_markdown_images_no_images(self):
+        matches = extract_markdown_images("Just plain text with [link](https://example.com)")
+        self.assertListEqual([], matches)
+
+    def test_extract_markdown_links_no_links(self):
+        matches = extract_markdown_links("Just plain text with ![image](https://i.imgur.com/zjjcJKZ.png)")
+        self.assertListEqual([], matches)
+
+    def test_extract_markdown_images_multiple(self):
+        matches = extract_markdown_images(
+            "![img1](https://example.com/1.png) text ![img2](https://example.com/2.png)"
+        )
+        self.assertListEqual(
+            [("img1", "https://example.com/1.png"), ("img2", "https://example.com/2.png")],
+            matches
+        )
+
+    def test_extract_markdown_links_multiple(self):
+        matches = extract_markdown_links(
+            "[link1](https://example.com/1) text [link2](https://example.com/2)"
+        )
+        self.assertListEqual(
+            [("link1", "https://example.com/1"), ("link2", "https://example.com/2")],
+            matches
+        )
 
 if __name__ == "__main__":
     unittest.main()
