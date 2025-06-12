@@ -1,6 +1,6 @@
 import unittest
 
-from markdown_helpers import markdown_to_blocks
+from markdown_helpers import markdown_to_blocks, BlockType,  block_to_block_type
 
 class TestMarkdowns(unittest.TestCase):
 
@@ -77,3 +77,72 @@ This is another paragraph with a trailing blank line.
             ],
         )
 
+    def test_block_to_block_type_paragraph(self):
+        block = "Simple paragraph text."
+        result = block_to_block_type(block)
+        self.assertEqual(result, BlockType.PARAGRAPH)
+
+    def test_block_to_block_type_heading(self):
+        block = "# A heading"
+        result = block_to_block_type(block)
+        self.assertEqual(result, BlockType.HEADING)
+
+    def test_block_to_block_type_quote(self):
+        block = "> This is a Quote"
+        result = block_to_block_type(block)
+        self.assertEqual(result, BlockType.QUOTE)
+
+    def test_multiple_block_types(self):
+        markdown = (
+            "> First quote line\n"
+            "\n"
+            "This is a paragraph.\n"
+            "\n"
+            "> Second quote line"
+        )
+        blocks = markdown_to_blocks(markdown)
+        results = [block_to_block_type(block) for block in blocks]
+        expected = [
+            BlockType.QUOTE,
+            BlockType.PARAGRAPH,
+            BlockType.QUOTE,
+        ]
+        self.assertEqual(results, expected)
+
+    def test_unordered_list_block(self):
+        block = "- First item\n* Second item\n+ Third item"
+        result = block_to_block_type(block)
+        self.assertEqual(result, BlockType.UNORDERED_LIST)
+
+    def test_ordered_list_block(self):
+        block = "1. First item\n2. Second item\n3. Third item"
+        result = block_to_block_type(block)
+        self.assertEqual(result, BlockType.ORDERED_LIST)
+
+    def test_mixed_blocks(self):
+        markdown = (
+            "# My Heading\n"
+            "\n"
+            "> A blockquote line\n"
+            "\n"
+            "- First unordered item\n- Second unordered item\n"
+            "\n"
+            "Now this is just a paragraph."
+        )
+        blocks = markdown_to_blocks(markdown)
+        results = [block_to_block_type(block) for block in blocks]
+        expected = [
+            BlockType.HEADING,
+            BlockType.QUOTE,
+            BlockType.UNORDERED_LIST,
+            BlockType.PARAGRAPH,
+        ]
+        self.assertEqual(results, expected)
+
+    def test_multiline_code_block(self):
+        block = "```\ndef add(x, y):\n    return x + y\n\nprint(add(2, 3))\n```"
+        result = block_to_block_type(block)
+        self.assertEqual(result, BlockType.CODE)
+
+if __name__ == "__main__":
+    unittest.main()
